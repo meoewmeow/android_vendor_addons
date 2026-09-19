@@ -227,6 +227,7 @@ $(call inherit-product-if-exists, external/google-fonts/rubik/fonts.mk)
 PRODUCT_PACKAGES += \
     AxThemePicker \
     AxWallpaperEffects \
+    AxionParts \
     AxionWidgets
 
 $(call inherit-product-if-exists, vendor/addons/sdk/ax_tflite/common.mk)
