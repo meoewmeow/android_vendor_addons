@@ -43,7 +43,22 @@ enum class PreferencePosition {
     Bottom
 }
 
-private val preferenceCornerRadius = 28.dp
+fun preferencePosition(
+    index: Int,
+    count: Int,
+    firstIsMiddle: Boolean = false,
+): PreferencePosition {
+    require(count > 0) { "Preference count must be positive" }
+    require(index in 0 until count) { "Preference index must be within the preference count" }
+    return when {
+        count == 1 -> PreferencePosition.Single
+        index == 0 -> if (firstIsMiddle) PreferencePosition.Middle else PreferencePosition.Top
+        index == count - 1 -> PreferencePosition.Bottom
+        else -> PreferencePosition.Middle
+    }
+}
+
+private val preferenceCornerRadius = 20.dp
 private val bottomTopCornerRadius = 4.dp
 
 val LocalPreferencePosition = compositionLocalOf { PreferencePosition.Single }

@@ -35,6 +35,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.Objects;
 
 public class AxPlatformClient {
 
@@ -247,6 +249,17 @@ public class AxPlatformClient {
             new ConcurrentHashMap<>();
     private final List<IAxPlatformCallback> mRawCallbacks =
             java.util.Collections.synchronizedList(new ArrayList<>());
+    private final ConcurrentHashMap<StateCallback, IAxPlatformCallback> mStateCallbacks =
+            new ConcurrentHashMap<>();
+
+    /**
+     * AxionWidgets-facing callback that receives fully-typed feature state. Kept alongside the
+     * Bundle-based {@link Listener} API so both crDroid SystemUI consumers and the Axion widget
+     * client can bind to the same platform service.
+     */
+    public interface StateCallback {
+        void onStateChanged(String key, AxFeatureState state);
+    }
 
     public abstract static class Listener {
         public void onUiModeChanged(boolean isDarkMode) {}
@@ -413,7 +426,11 @@ public class AxPlatformClient {
         call("performAction:" + feature, s -> s.performAction(feature, param));
     }
 
-    public Bundle getState(String feature) {
+    public AxFeatureState getState(String feature) {
+        return AxFeatureState.fromBundle(getStateBundle(feature));
+    }
+
+    public Bundle getStateBundle(String feature) {
         return query("getState:" + feature, s -> s.getState(feature), Bundle.EMPTY);
     }
 
@@ -433,6 +450,27 @@ public class AxPlatformClient {
     public void unregisterCallback(IAxPlatformCallback callback) {
         mRawCallbacks.remove(callback);
         call("unregisterCallback", s -> s.unregisterCallback(callback));
+    }
+
+    public void registerCallback(Executor executor, StateCallback callback) {
+        Executor callbackExecutor = Objects.requireNonNull(executor);
+        StateCallback stateCallback = Objects.requireNonNull(callback);
+        IAxPlatformCallback remote = new IAxPlatformCallback.Stub() {
+            @Override
+            public void onStateChanged(String key, Bundle state) {
+                AxFeatureState featureState = AxFeatureState.fromBundle(state);
+                callbackExecutor.execute(() -> stateCallback.onStateChanged(key, featureState));
+            }
+        };
+        if (mStateCallbacks.putIfAbsent(stateCallback, remote) != null) {
+            throw new IllegalArgumentException("Callback is already registered");
+        }
+        call("registerCallback", s -> s.registerCallback(remote));
+    }
+
+    public void unregisterCallback(StateCallback callback) {
+        IAxPlatformCallback remote = mStateCallbacks.remove(Objects.requireNonNull(callback));
+        if (remote != null) call("unregisterCallback", s -> s.unregisterCallback(remote));
     }
 
     public void addListener(Listener listener) {

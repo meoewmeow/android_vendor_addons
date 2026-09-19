@@ -223,5 +223,13 @@ PRODUCT_PACKAGES += \
 $(call inherit-product-if-exists, external/google-fonts/lato/fonts.mk)
 $(call inherit-product-if-exists, external/google-fonts/rubik/fonts.mk)
 
+# Axion
+PRODUCT_PACKAGES += \
+    AxThemePicker \
+    AxWallpaperEffects \
+    AxionWidgets
+
+$(call inherit-product-if-exists, vendor/addons/sdk/ax_tflite/common.mk)
+
 PRODUCT_COPY_FILES += \
     $(call find-copy-subdir-files,*,vendor/addons/prebuilt/product/fonts,$(TARGET_COPY_OUT_PRODUCT)/fonts)

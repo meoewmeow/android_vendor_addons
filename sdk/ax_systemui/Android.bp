@@ -1,0 +1,10 @@
+filegroup {
+    name: "ax_systemui_sources",
+    srcs: [
+        // Milestone 1 scope: Axion wallpaper depth/animation only. QS/pulse/media/
+        // shade/mistouch sources are deferred and must not be compiled into SystemUI.
+        "src/com/android/systemui/wallpapers/AxWallpaperAnimController.kt",
+        "src/com/android/systemui/wallpapers/AxWallpaperDepthAnimator.kt",
+    ],
+    visibility: ["//frameworks/base/packages/SystemUI:__subpackages__"],
+}
