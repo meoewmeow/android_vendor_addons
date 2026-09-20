@@ -225,6 +225,7 @@ $(call inherit-product-if-exists, external/google-fonts/rubik/fonts.mk)
 
 # Axion
 PRODUCT_PACKAGES += \
+    AxDiagnostics \
     AxThemePicker \
     AxWallpaperEffects \
     AxionParts \
